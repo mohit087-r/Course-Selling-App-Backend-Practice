@@ -15,7 +15,7 @@ app.use("/course", courseRouter);
 
 main();
 async function main() {
-    await mongoose.connection(process.env.MODULE_URL);
+    await mongoose.connect(process.env.MODULE_URL);
 }
 
 app.listen(3000);

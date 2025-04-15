@@ -2,6 +2,7 @@ const express = require("express");
 const adminRouter = express.Router();
 const { z } = require("zod");
 const { adminMiddleware } = require("../middlewares/admin")
+const jwt = require("jsonwebtoken");
 const { JWT_SECRET_ADMIN } = require("../config");
 const bcrypt = require("bcrypt");
 const {AdminModel, CourseModel} = require("../db");
@@ -17,7 +18,7 @@ adminRouter.post("/signup", async (req, res) => {
     const parseData = requireBody.safeParse(req.body);
 
     if(!parseData.success){
-        res.json({
+        res.status(400).json({
             message: "Invalid Input"
         })
         return;
@@ -40,13 +41,13 @@ adminRouter.post("/signup", async (req, res) => {
         })
     }
     catch {
-        res.json({
-            message: "Admin already with this email"
+        res.status(400).json({
+            message: "Admin already exits with this email"
         })
     }
 });
 
-adminRouter.post("/singin", async (req, res) => {
+adminRouter.post("/signin", async (req, res) => {
     try{
         const { email, password } = req.body;
 
@@ -67,20 +68,20 @@ adminRouter.post("/singin", async (req, res) => {
             })
         }
         else{
-            res.json({
+            res.status(400).json({
                 message: "Incorrect credentials"
             })
         }
     }
     catch{
-        res.json({
+        res.status(400).json({
             message: "You first need singup"
         })
     }
 });
 
 adminRouter.post("/course", adminMiddleware, async (req, res) => {
-    const creatorId = req.creatorId;
+    const adminId = req.adminId;
     const {title, description, imageUrl, price} = req.body;
 
     const course = await CourseModel.insertOne({
@@ -88,7 +89,7 @@ adminRouter.post("/course", adminMiddleware, async (req, res) => {
         description: description,
         imageUrl: imageUrl,
         price: price,
-        creatorId: creatorId
+        creatorId: adminId
     })
 
     res.json({
@@ -98,14 +99,14 @@ adminRouter.post("/course", adminMiddleware, async (req, res) => {
 });
 
 adminRouter.put("/course",  adminMiddleware, async (req, res) => {
-    const creatorId = req.creatorId;
-
+    const creatorId = req.adminId;
+    
     const { title, description, imageUrl, price, courseId} = req.body;
 
     try{
-        await CourseModel.findOne({
-            creatorId: creatorId,
-            _id: courseId
+        await CourseModel.updateOne({
+            _id: courseId,
+            creatorId: creatorId
         },{
             title: title,
             description: description,
@@ -119,21 +120,21 @@ adminRouter.put("/course",  adminMiddleware, async (req, res) => {
         })
     }
     catch {
-        res.json({
+        res.status(400).json({
             message: "You can not access this course"
         })
     }
 });
 
 adminRouter.get("/courses", adminMiddleware, async (req, res) => {
-    const creatorId = req.creatorId;
+    const creatorId = req.adminId;
 
     const courses = await CourseModel.find({
         creatorId: creatorId
     });
 
     if(courses.length == 0){
-        res.json({
+        res.status(400).json({
             message: "You don't have any courses"
         })
         return;

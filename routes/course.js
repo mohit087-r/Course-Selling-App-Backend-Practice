@@ -1,16 +1,15 @@
 const express = require("express");
 const courseRouter = express.Router();
-const { z } = require("zod");
 const { userMiddleware } = require("../middlewares/user")
 const {CourseModel, PurchaseModel} = require("../db");
 
 courseRouter.post("/purchase", userMiddleware, async(req, res) => {
     const userId = req.userId;
-    const creatorId = req.body.creatorId;
+    const courseId = req.body.courseId;
 
     await PurchaseModel.insertOne({
         userId: userId,
-        creatorId: creatorId
+        courseId: courseId
     });
 
     res.json({
@@ -26,4 +25,6 @@ courseRouter.get("/preview", async(req, res) => {
     res.json({
         courses
     })
-})
+});
+
+module.exports = courseRouter;

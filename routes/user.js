@@ -2,9 +2,10 @@ const express = require("express");
 const userRouter = express.Router();
 const { z } = require("zod");
 const { userMiddleware } = require("../middlewares/user")
+const jwt = require("jsonwebtoken");
 const { JWT_SECRET_USER } = require("../config");
 const bcrypt = require("bcrypt");
-const {UserModel, PurchaseModel} = require("../db");
+const {UserModel, PurchaseModel, CourseModel} = require("../db");
 
 userRouter.post("/signup", async (req, res) => {
     const requireBody = z.object({
@@ -46,47 +47,47 @@ userRouter.post("/signup", async (req, res) => {
     }
 });
 
-userRouter.post("/signin",async (req, res) => {
+userRouter.post("/signin", async (req, res) => {
     try{
         const {email, password} = req.body;
 
         const user = await UserModel.findOne({
             email: email
-        })
+        });
 
-        const userMatch = await bcrypt.compare(password, user.password)
+        const passwordMatch = await bcrypt.compare(password, user.password);
 
-        if(user && userMatch){
-            const token = jwt.sing({
+        if(user && passwordMatch){
+            const token = jwt.sign({
                 id: user._id.toString()
             }, JWT_SECRET_USER)
 
             res.json({
-                message: "You are signin successfully",
+                message: "Your are signin",
                 token: token
             })
         }
         else{
-            res.json({
+            res.status(400).send({
                 message: "Incorrect credentials"
             })
         }
     }
     catch{
-        res.json({
-            message: "You first need to signup"
+        res.status(400).send({
+            message: "You first need signup"
         })
     }
 });
 
-userRouter.post("/purchases", userMiddleware, async (req, res) => {
+userRouter.get("/purchases", userMiddleware, async (req, res) => {
     const userId = req.userId;
 
     const purchases = await PurchaseModel.find({
         userId: userId
     })
 
-    const courseData = await PurchaseModel.find({
+    const courseData = await CourseModel.find({
         _id: {$in: purchases.map(x => x.courseId)}
     })
 
