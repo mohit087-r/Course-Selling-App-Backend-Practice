@@ -1,6 +1,5 @@
 const express = require("express");
-const Router = express.Router();
-const adminRouter = Router();
+const adminRouter = express.Router();
 const { z } = require("zod");
 const { adminMiddleware } = require("../middlewares/admin")
 const { JWT_SECRET_ADMIN } = require("../config");
@@ -129,7 +128,7 @@ adminRouter.put("/course",  adminMiddleware, async (req, res) => {
 adminRouter.get("/courses", adminMiddleware, async (req, res) => {
     const creatorId = req.creatorId;
 
-    const courses = await AdminModel.find({
+    const courses = await CourseModel.find({
         creatorId: creatorId
     });
 
@@ -144,3 +143,6 @@ adminRouter.get("/courses", adminMiddleware, async (req, res) => {
         courses
     })
 });
+
+
+module.exports = adminRouter;

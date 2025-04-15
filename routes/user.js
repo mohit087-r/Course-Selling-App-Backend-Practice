@@ -1,6 +1,5 @@
 const express = require("express");
-const Router = express.Router();
-const userRouter = Router();
+const userRouter = express.Router();
 const { z } = require("zod");
 const { userMiddleware } = require("../middlewares/user")
 const { JWT_SECRET_USER } = require("../config");
